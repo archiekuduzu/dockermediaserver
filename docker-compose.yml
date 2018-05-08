@@ -29,7 +29,7 @@ services:
       - PLEX_GID=1010
     volumes:
       - /mnt/containers/dms/configs/plex:/config
-      - /mnt/storage/dms/movies:/data/
+      - /mnt/storage/dms/movies:/data/movies
       - /mnt/storage/dms/tv:/data/tvshows
       - /mnt/storage/dms/extras:/data/extras
       - /dev/shm:/tmp
@@ -66,6 +66,10 @@ services:
       - nzbget
       - plex
 
+    vpntransmission:
+      image: haugene/transmission-openvpn
+      container_name: vpntransmission 
+
   nzbget:
     image: linuxserver/nzbget:testing
     env_file: ./ids.env
@@ -75,7 +79,7 @@ services:
     restart: unless-stopped
     volumes:
       - /mnt/containers/dms/configs/nzbget:/config
-      - /mnt/storage/dms/downloads:/downloads
+      - /mnt/storage/dms/downloads/nzb:/downloads
 
   plexpy:
     image: linuxserver/plexpy:latest
