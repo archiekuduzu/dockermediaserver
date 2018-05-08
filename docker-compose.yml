@@ -1,0 +1,101 @@
+# docker-compose.yml
+version: '2'
+
+services:
+
+  plexrequests:
+    image: linuxserver/plexrequests
+    env_file: ./ids.env
+    container_name: plexrequests
+    ports:
+            - "3000:3000"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /mnt/containers/dms/configs/plexrequests:/config
+    links:
+      - radarr
+      - sonarr
+      - plex
+
+  plex:
+    image: plexinc/pms-docker:plexpass
+    env_file: ./ids.env
+    container_name: plex
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - PLEX_CLAIM=""
+      - PLEX_UID=1010
+      - PLEX_GID=1010
+    volumes:
+      - /mnt/containers/dms/configs/plex:/config
+      - /mnt/storage/dms/movies:/data/
+      - /mnt/storage/dms/tv:/data/tvshows
+      - /mnt/storage/dms/extras:/data/extras
+      - /dev/shm:/tmp
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    env_file: ./ids.env
+    container_name: sonarr
+    ports:
+      - "8989:8989"
+      - "9898:9898"
+    restart: unless-stopped
+    volumes:
+      - /dev/rtc:/dev/rtc:ro
+      - /mnt/containers/dms/configs/sonarr:/config
+      - /mnt/storage/dms/tv:/tv
+      - /mnt/storage/dms/downloads/:/downloads
+    links:
+      - nzbget
+      - plex
+
+  radarr:
+    image: linuxserver/radarr:latest
+    env_file: ./ids.env
+    container_name: radarr
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+    volumes:
+      - /mnt/containers/dms/configs/radarr:/config
+      - /mnt/storage/dms/movies:/movies
+      - /mnt/storage/dms/downloads/:/downloads
+    links:
+      - nzbget
+      - plex
+
+  nzbget:
+    image: linuxserver/nzbget:testing
+    env_file: ./ids.env
+    container_name: nzbget
+    ports:
+      - "6789:6789"
+    restart: unless-stopped
+    volumes:
+      - /mnt/containers/dms/configs/nzbget:/config
+      - /mnt/storage/dms/downloads:/downloads
+
+  plexpy:
+    image: linuxserver/plexpy:latest
+    env_file: ./ids.env
+    container_name: plexpy
+    restart: unless-stopped
+    ports:
+      - "8181:8181"
+    volumes:
+      - /mnt/containers/dms/configs/plexpy:/config
+      - /mnt/containers/dms/configs/plex/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs
+    links:
+      - plex
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /etc/nginx:/etc/nginx
+      - /etc/letsencrypt:/etc/letsencrypt
+    command: /bin/bash -c "nginx -g 'daemon off;'"
