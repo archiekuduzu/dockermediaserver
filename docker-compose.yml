@@ -11,7 +11,7 @@ services:
             - "3000:3000"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /mnt/containers/dms/configs/plexrequests:/config
+      - ./dms/configs/plexrequests:/config
     links:
       - radarr
       - sonarr
@@ -28,7 +28,7 @@ services:
       - PLEX_UID=1010
       - PLEX_GID=1010
     volumes:
-      - /mnt/containers/dms/configs/plex:/config
+      - ./dms/configs/plex:/config
       - /mnt/storage/dms/movies:/data/movies
       - /mnt/storage/dms/tv:/data/tvshows
       - /mnt/storage/dms/extras:/data/extras
@@ -44,7 +44,7 @@ services:
     restart: unless-stopped
     volumes:
       - /dev/rtc:/dev/rtc:ro
-      - /mnt/containers/dms/configs/sonarr:/config
+      - ./dms/configs/sonarr:/config
       - /mnt/storage/dms/tv:/tv
       - /mnt/storage/dms/downloads/:/downloads
     links:
@@ -59,12 +59,23 @@ services:
       - "7878:7878"
     restart: unless-stopped
     volumes:
-      - /mnt/containers/dms/configs/radarr:/config
+      - ./dms/configs/radarr:/config
       - /mnt/storage/dms/movies:/movies
       - /mnt/storage/dms/downloads/:/downloads
     links:
       - nzbget
       - plex
+
+  jackett:
+      image: linuxserver/jackett:latest
+      env_file: ./ids.env
+      container_name: jackett
+      ports:
+        - "9117:9117"
+      restart: unless-stopped
+      volumes:
+        - ./dms/configs/jackett:/config
+
 
   vpntransmission:
     image: haugene/transmission-openvpn
@@ -83,7 +94,7 @@ services:
     restart: always
     volumes:
         - /etc/localtime:/etc/localtime:ro
-        - /mnt/storage/downloads:/data
+        - /mnt/storage/dms/downloads/torrents:/data
 
   nzbget:
     image: linuxserver/nzbget:testing
@@ -93,7 +104,7 @@ services:
       - "6789:6789"
     restart: unless-stopped
     volumes:
-      - /mnt/containers/dms/configs/nzbget:/config
+      - ./dms/configs/nzbget:/config
       - /mnt/storage/dms/downloads/nzb:/downloads
 
   plexpy:
@@ -104,8 +115,8 @@ services:
     ports:
       - "8181:8181"
     volumes:
-      - /mnt/containers/dms/configs/plexpy:/config
-      - /mnt/containers/dms/configs/plex/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs
+      - ./dms/configs/plexpy:/config
+      - ./dms/configs/plex/Library/Application\ Support/Plex\ Media\ Server/Logs:/logs
     links:
       - plex
 
