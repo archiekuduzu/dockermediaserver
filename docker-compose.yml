@@ -66,9 +66,24 @@ services:
       - nzbget
       - plex
 
-    vpntransmission:
-      image: haugene/transmission-openvpn
-      container_name: vpntransmission 
+  vpntransmission:
+    image: haugene/transmission-openvpn
+    cap_add:
+        - NET_ADMIN
+    devices:
+        - /dev/net/tun
+    env_file: ./vpntransmission.env
+    container_name: vpntransmission
+    ports:
+        - "9091:9091"
+        - "8888:8888"
+    dns:
+        - 8.8.8.8
+        - 8.8.4.4
+    restart: always
+    volumes:
+        - /etc/localtime:/etc/localtime:ro
+        - /mnt/storage/downloads:/data
 
   nzbget:
     image: linuxserver/nzbget:testing
